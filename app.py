@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request
 import json
 import logging
 import requests
@@ -15,7 +15,6 @@ import response_helper
 import atexit
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
-
 
 # print("ENVIORNMENT..........", os.environ.get("COWIN_API_ENDPOINT"))
 
@@ -47,12 +46,12 @@ def get_json_data(district_code, date):
 def find_available_vaccine_slots():
     try:
         app.logger.info("finding available slots.....")
-        user_data = db_service.get_user_data()
+        user_data = db_service.get_user_data(app)
         vaccine_slots_by_district = {}
         for data in user_data:
             # print(data)
-            if vaccine_slots_by_district.get(str(data.get("district")) + '_' + str(data.get("age")), None) is None:
-                res = get_json_data(data.get("district"), datetime.strftime(datetime.now(), "%d-%m-%Y"))
+            if vaccine_slots_by_district.get(str(data.get("district_code")) + '_' + str(data.get("age")), None) is None:
+                res = get_json_data(data.get("district_code"), datetime.strftime(datetime.now(), "%d-%m-%Y"))
                 if res is None:
                     app.logger.info("Currently not available.....")
 
@@ -60,31 +59,33 @@ def find_available_vaccine_slots():
                 booking_available = []
                 for center in available_centers:
                     center_name = center.get("name")
-                    center_fee = center.get("fee_type")
                     center_pincode = center.get("pincode")
                     sessions = center.get("sessions")
-                    available_session = []
                     for session in sessions:
+                        available_session = {}
                         if session.get("available_capacity") > 0 and int(session.get("min_age_limit")) == int(data.get("age")):
-                            available_session.append(session)
+                            available_session["name"] = center_name
+                            available_session["pincode"] = center_pincode
+                            available_session["available_capacity"] = session.get("available_capacity")
+                            available_session["date"] = session.get("date")
+                            booking_available.append(available_session)
 
-                    if len(available_session) > 0:
-                        center_data = {
-                            "name": center_name,
-                            "fee": center_fee,
-                            "pincode": center_pincode,
-                            "sessions": available_session
-                        }
-                        booking_available.append(center_data)
-                vaccine_slots_by_district[str(data.get("district")) + '_' + str(data.get("age"))] = booking_available
+                booking_available.sort(key=lambda x: datetime.strptime(x['date'], '%d-%m-%Y'))
+
+                vaccine_slots_by_district[str(data.get("district_code")) + '_' + str(data.get("age"))] = booking_available
+                # app.logger.info("vaccine....{}".format(str(vaccine_slots_by_district)))
                 # print(vaccine_slots_by_district)
 
-            if vaccine_slots_by_district[str(data.get("district")) + '_' + str(data.get("age"))] == []:
+            if vaccine_slots_by_district[str(data.get("district_code")) + '_' + str(data.get("age"))] == []:
                 continue
-            email_sent = email_service.send_email(data.get("email"), vaccine_slots_by_district[str(data.get("district")) + '_' + str(data.get("age"))])
+            email_sent = email_service.send_email(data.get("email"),
+                                                  vaccine_slots_by_district[str(data.get("district_code")) + '_' + str(data.get("age"))],
+                                                  data.get("district"),
+                                                  data.get("age"),
+                                                  app)
             if email_sent:
-                db_service.update_user_notified_status(data.get("email"), data.get("district"),
-                                                       data.get("age"), False)
+                db_service.update_user_notified_status(data.get("email"), data.get("district_code"),
+                                                       data.get("age"), False, app)
                 app.logger.info("Email sent successfully....")
             else:
                 app.logger.info("Error in sending email...")
@@ -96,15 +97,18 @@ def find_available_vaccine_slots():
 
 find_available_vaccine_slots()
 
+
 def job():
     print("Scheduler started.....")
     find_available_vaccine_slots()
+
 
 sched = BackgroundScheduler(daemon=True)
 sched.add_job(job, trigger='interval', minutes=int(os.environ.get("TRIGGER_TIME_MINUTES")))
 sched.start()
 
 atexit.register(lambda: sched.shutdown())
+
 
 # @app.route('/subscribe', methods=['GET'])
 # def subscribe():
@@ -137,24 +141,30 @@ def add_user():
         district_code = request.args.get("district_code", None)
         age = request.args.get("age", None)
         email = request.args.get("email", None)
-
+        district = request.args.get("district", None)
         if district_code is None:
-            return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("district_code"), app)
+            return response_helper.create_parameter_missing_error_response(
+                '{} is required parameter'.format("district_code"), app)
         elif age is None:
-            return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("age"), app)
+            return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("age"),
+                                                                           app)
         elif email is None:
-            return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("email"), app)
+            return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("email"),
+                                                                           app)
+        elif district is None:
+            return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("district"),
+                                                                           app)
         else:
-            user = db_service.get_user_by_email(email, district_code, age)
+            user = db_service.get_user_by_email(email, district_code, age, app)
             if user is None or user == []:
-                user_inserted = db_service.create_user(email, district_code, age)
+                user_inserted = db_service.create_user(email, district_code, district, age, app)
                 app.logger.info("User added with email id {}".format(str(email)))
                 if user_inserted:
                     return response_helper.create_success_response("Subscription added..", app)
                 else:
                     return response_helper.create_error_response("Error... Please Try again", app)
             elif len(user) > 0 and user[0].get("is_notified") == 1:
-                user_updated = db_service.update_user_notified_status(email, district_code, age, True)
+                user_updated = db_service.update_user_notified_status(email, district_code, age, True, app)
                 if user_updated:
                     return response_helper.create_success_response("Subscription Added..", app)
                 else:

@@ -2,7 +2,6 @@ import os
 
 import sqlalchemy as db
 from datetime import datetime
-import traceback
 try:
 
     # print(os.environ.get("DB_USERNAME"))
@@ -17,10 +16,10 @@ try:
 
 except Exception as e:
     print("Error to connect with  DB" + str(e))
-    print(traceback.print_exc())
+    # print(traceback.print_exc())
     db_engine = None
 
-def get_user_data():
+def get_user_data(app):
     connection = db_engine.connect()
     try:
 
@@ -30,52 +29,52 @@ def get_user_data():
         if result != None:
             return [{column: value for column, value in result.items()} for result in result]
     except Exception as e:
-        print("Error to get user data", str(e))
+        app.logger.error("Error to get user data " + str(e))
         return None
     finally:
         connection.close()
 
 
-def create_user(email, district, age):
+def create_user(email, district_code, district,  age, app):
     connection = db_engine.connect()
     try:
         db_table = "users"
-        query = """INSERT INTO {} (`email`, `district`, `is_notified`, `created_at`, `updated_at`, `age`) VALUES (%s, %s, %s, %s, %s, %s)""".format(db_table)
-        result = connection.execute(query, (email, district, 0, datetime.now(), datetime.now(), age))
+        query = """INSERT INTO {} (`email`, `district_code`, `district`, `is_notified`, `created_at`, `updated_at`, `age`) VALUES (%s, %s, %s, %s, %s, %s, %s)""".format(db_table)
+        result = connection.execute(query, (email, district_code, district, 0, datetime.now(), datetime.now(), age))
         return True
     except Exception as e:
-        print("Error to create user", str(e))
+        app.logger.error("Error to create user " + str(e))
         return False
     finally:
         connection.close()
 
 
-def get_user_by_email(email, district, age):
+def get_user_by_email(email, district_code, age, app):
     connection = db_engine.connect()
     try:
         db_table = "users"
-        query = """SELECT * from {} where email=%s AND district=%s AND age=%s""".format(
+        query = """SELECT * from {} where email=%s AND district_code=%s AND age=%s""".format(
             db_table)
-        result = connection.execute(query, (email, district, age))
+        result = connection.execute(query, (email, district_code, age))
         if result != None:
             return [{column: value for column, value in result.items()} for result in result]
     except Exception as e:
-        print("Error to create user", str(e))
+        app.logger.error("Error to get user " + str(e))
         return None
     finally:
         connection.close()
 
 
-def update_user_notified_status(email, district, age, is_notified):
+def update_user_notified_status(email, district_code, age, is_notified, app):
     connection = db_engine.connect()
     try:
         db_table = "users"
-        query = """UPDATE {} SET is_notified=%s, updated_at=%s where email=%s AND district=%s AND age=%s""".format(
+        query = """UPDATE {} SET is_notified=%s, updated_at=%s where email=%s AND district_code=%s AND age=%s""".format(
             db_table)
-        result = connection.execute(query, (int(not is_notified), datetime.now(), email, district, age))
+        result = connection.execute(query, (int(not is_notified), datetime.now(), email, district_code, age))
         return True
     except Exception as e:
-        print("Error to create user", str(e))
+        app.logger.error("Error to update status {}".format(str(e)))
         return False
     finally:
         connection.close()
