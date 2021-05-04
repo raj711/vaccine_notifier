@@ -105,40 +105,37 @@ sched.start()
 
 atexit.register(lambda: sched.shutdown())
 
+# @app.route('/subscribe', methods=['GET'])
+# def subscribe():
+#     try:
+#         app.logger.info("Subscription request started...")
+#         email = request.args.get("email")
+#         district_code = request.args.get("district")
+#         age = request.args.get("age")
+#         if district_code is None:
+#             return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("district_code"), app)
+#         elif age is None:
+#             return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("age"), app)
+#         elif email is None:
+#             return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("email"), app)
+#         else:
+#             updated = db_service.update_user_notified_status(email, district_code, age, True)
+#             if updated:
+#                 return response_helper.create_success_response("Subscription added successfully..", app)
+#             else:
+#                 return response_helper.create_error_response("Please Try again..", app)
+#     except Exception as e:
+#         app.logger.info("Something went wrong... {}".format(str(e)))
+#         return response_helper.create_server_error_response(app)
+
+
 @app.route('/subscribe', methods=['GET'])
-def subscribe():
-    try:
-        app.logger.info("Subscription request started...")
-        email = request.args.get("email")
-        district_code = request.args.get("district")
-        age = request.args.get("age")
-        if district_code is None:
-            return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("district_code"), app)
-        elif age is None:
-            return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("age"), app)
-        elif email is None:
-            return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("email"), app)
-        else:
-
-            updated = db_service.update_user_notified_status(email, district_code, age, True)
-            if updated:
-                return response_helper.create_success_response("Subscription added successfully..", app)
-            else:
-                return response_helper.create_error_response("Please Try again..", app)
-    except Exception as e:
-        app.logger.info("Something went wrong... {}".format(str(e)))
-        return response_helper.create_server_error_response(app)
-
-
-@app.route('/add_user', methods=['POST'])
 def add_user():
     try:
         app.logger.info("Add user request started...")
-        app.logger.info("Request Body... {}".format(str(request.json)))
-        req_body = request.json
-        district_code = req_body.get("district_code", None)
-        age = req_body.get("age", None)
-        email = req_body.get("email", None)
+        district_code = request.args.get("district_code", None)
+        age = request.args.get("age", None)
+        email = request.args.get("email", None)
 
         if district_code is None:
             return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("district_code"), app)
