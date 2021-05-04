@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>My Page</title>
+    </head>
+    <body>
+        <form method="POST" action="/find_vaccine_slots">
+            District: <input type="text" name="district_id" required><br>
+            Date: <input type="text" name="date" required><br>
+            Age: <input type="text" name="age"><br>
+            <input type="submit" value="Submit">
+        </form>
+<!--        <p>{{ res }}</p>-->
+        {% if error_message %}
+            <br><h4> {{error_message}}</h4><br>
+        {% else %}
+            {% if res %}
+                <table>
+                <tbody>
+                {% for center in res %}
+                    <tr>
+                        <td>{{center['name']}}</td>
+                        <td>{{center['fee']}}</td>
+                        <td>{{center['pincode']}}</td>
+                        {% for session in center['sessions'] %}
+                            <td>{{session}}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+            {% else %}
+                <br> <h4> "No data available" </h4> <br>
+            {% endif %}
+        {% endif %}
+
+
+    </body>
+</html>
