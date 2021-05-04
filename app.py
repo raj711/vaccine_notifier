@@ -108,6 +108,7 @@ atexit.register(lambda: sched.shutdown())
 @app.route('/subscribe', methods=['GET'])
 def subscribe():
     try:
+        app.logger.info("Subscription request started...")
         email = request.args.get("email")
         district_code = request.args.get("district")
         age = request.args.get("age")
@@ -132,7 +133,8 @@ def subscribe():
 @app.route('/add_user', methods=['POST'])
 def add_user():
     try:
-        print(request.json)
+        app.logger.info("Add user request started...")
+        app.logger.info("Request Body... {}".format(str(request.json)))
         req_body = request.json
         district_code = req_body.get("district_code", None)
         age = req_body.get("age", None)
@@ -148,11 +150,12 @@ def add_user():
             user = db_service.get_user_by_email(email, district_code, age)
             if user is None or user == []:
                 user_inserted = db_service.create_user(email, district_code, age)
+                app.logger.info("User added with email id {}".format(str(email)))
                 if user_inserted:
                     return response_helper.create_success_response("Subscription added..", app)
                 else:
                     return response_helper.create_error_response("Error... Please Try again", app)
-            elif user[0].get("is_notified") == 1:
+            elif len(user) > 0 and user[0].get("is_notified") == 1:
                 user_updated = db_service.update_user_notified_status(email, district_code, age, True)
                 if user_updated:
                     return response_helper.create_success_response("Subscription Added..", app)
