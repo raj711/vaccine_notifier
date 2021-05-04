@@ -4,11 +4,11 @@ import logging
 import requests
 import os
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 APP_ROOT = os.path.join(os.path.dirname(__file__))
 dot_env_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dot_env_path)
-
 
 import email_service, db_service
 import response_helper
@@ -23,6 +23,7 @@ app = Flask(__name__)
 app_logger = logging.getLogger(os.environ.get("APP_LOGGER"))
 app.logger.handlers = app_logger.handlers
 app.logger.setLevel(logging.DEBUG)
+cors = CORS(app)
 
 
 def get_json_data(district_code, date):
