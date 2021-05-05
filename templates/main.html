@@ -1,26 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>My Page</title>
-    </head>
-    <body>
-        {% if res %}
-            <table>
-            <tbody>
-            {% for center in res %}
-                <tr>
-                    <td>{{center.name}}</td>
-                    <td>{{center.pincode}}</td>
-                    <td>{{center.available_capacity}}</td>
-                    <td>{{center.date}}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-            </table>
-        {% else %}
-            <br> <h4> "No data available" </h4> <br>
-        {% endif %}
+<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Demystifying Email Design</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-    </body>
+     <style>
+         thead, tbody { display: block; }
+
+        tbody {
+            height: 500px;       /* Just for the demo          */
+            overflow-y: auto;    /* Trigger vertical scroll    */
+            overflow-x: hidden;  /* Hide the horizontal scroll */
+        }
+     </style>
+</head>
+<body style="margin: 0; padding: 0;">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse;">
+        <tr>
+         <td>
+            Hello,
+         </td>
+        </tr>
+        <tr>   <td style="text-align: justify;">  <br>     The appointment slots for vaccination for Covid-19 that you have subscribed for {{district_name}} have just become available. Following are the details of available slots:  </td></tr>
+    </table>
+    <table align="center" border="1" cellpadding="0" cellspacing="0" width="600">
+        <thead>
+        <tr>
+           <th>Vaccination Centre</th>
+           <th>Pincode</th>
+           <th>Date</th>
+            <th>Available Slots</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for center in data %}
+            <tr>
+               <td>{{center.name}}</td>
+               <td>{{center.pincode}}</td>
+               <td>{{center.date}}</td>
+                <td>{{center.available_capacity}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+       </table>
+    <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse;">
+        <tr><td style="text-align: justify;"><br>Please head on to <a href="cowin.gov.in"> Cowin</a> to book your vaccine appointment at the earliest.</td></tr>
+            <tr><td style="text-align: justify;"><br>Note that this is real time data and it may vary when you see the slots on the Cowin portal. If you are not seeing any slots, no worries, just subscribe on <hyperlink>covid-vaccine-notifier.in</hyperlink> again to get notified when slots become available again.</td></tr>
+            <tr><td style="text-align: justify;"><br>We have done our job to notify you. Now head on and complete your duty and get vaccinated. In case you want to receive email update again when these slots become  available, please <hyperlink>subscribe</hyperlink></td></tr>
+            <tr><td style="text-align: justify;"><br>Stay home, Stay safe!</td></tr>
+            <tr><td style="text-align: justify;"><br>Regards,</td></tr>
+    </table>
+
+   </body>
 </html>

@@ -29,7 +29,7 @@ def send_email(reciever_email, data, district, age, app):
         message["To"] = receiver_email
 
         with app.app_context():
-            html = render_template('main.html', res=data)
+            html = render_template('main.html', district_name=district, data=data)
 
         # html = """\
         # <html>
