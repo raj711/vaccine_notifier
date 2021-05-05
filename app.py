@@ -142,16 +142,16 @@ def add_user():
         age = request.args.get("age", None)
         email = request.args.get("email", None)
         district = request.args.get("district", None)
-        if district_code is None:
+        if district_code is None or district_code == '':
             return response_helper.create_parameter_missing_error_response(
                 '{} is required parameter'.format("district_code"), app)
-        elif age is None:
+        elif age is None or age == '':
             return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("age"),
                                                                            app)
-        elif email is None:
+        elif email is None or email == '':
             return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("email"),
                                                                            app)
-        elif district is None:
+        elif district is None or district == '':
             return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("district"),
                                                                            app)
         else:
