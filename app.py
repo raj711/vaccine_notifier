@@ -10,7 +10,8 @@ APP_ROOT = os.path.join(os.path.dirname(__file__))
 dot_env_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dot_env_path)
 
-import email_service, db_service
+import db_service
+from email_service import EmailService
 import response_helper
 import atexit
 from datetime import datetime
@@ -18,6 +19,9 @@ from apscheduler.schedulers.background import BackgroundScheduler
 # import traceback
 
 # print("ENVIORNMENT..........", os.environ.get("COWIN_API_ENDPOINT"))
+
+email_service = EmailService()
+email_service.connect()
 
 app = Flask(__name__)
 app_logger = logging.getLogger(os.environ.get("APP_LOGGER"))
