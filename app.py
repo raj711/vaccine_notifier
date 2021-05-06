@@ -70,10 +70,10 @@ def find_available_vaccine_slots():
                     sessions = center.get("sessions")
                     for session in sessions:
                         available_session = {}
-                        if session.get("available_capacity") > 0 and int(session.get("min_age_limit")) == int(data.get("age")):
+                        if int(session.get("available_capacity")) > 0 and int(session.get("min_age_limit")) == int(data.get("age")):
                             available_session["name"] = center_name
                             available_session["pincode"] = center_pincode
-                            available_session["available_capacity"] = session.get("available_capacity")
+                            available_session["available_capacity"] = int(session.get("available_capacity"))
                             available_session["date"] = session.get("date")
                             booking_available.append(available_session)
 
