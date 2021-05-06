@@ -31,10 +31,12 @@ def get_json_data(district_code, date):
         "district_id": district_code,
         "date": date
     }
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
     url = os.environ.get("COWIN_API_ENDPOINT")
 
-    response = requests.get(url, params=params)
+    response = requests.get(url, params=params, headers=headers)
     response.encoding = 'utf-8'
     if response.status_code == 200:
         res = json.loads(response.text)
