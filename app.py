@@ -35,7 +35,6 @@ def get_json_data(district_code, date):
 
     response = requests.get(url, params=params)
     response.encoding = 'utf-8'
-
     if response.status_code == 200:
         res = json.loads(response.text)
         return res
@@ -53,7 +52,8 @@ def find_available_vaccine_slots():
             if vaccine_slots_by_district.get(str(data.get("district_code")) + '_' + str(data.get("age")), None) is None:
                 res = get_json_data(data.get("district_code"), datetime.strftime(datetime.now(), "%d-%m-%Y"))
                 if res is None:
-                    app.logger.info("Currently not available.....")
+                    app.logger.info("Currently not available.. User skipped {}".format(data.get("id")))
+                    continue
 
                 available_centers = res.get("centers")
                 booking_available = []
@@ -138,10 +138,13 @@ atexit.register(lambda: sched.shutdown())
 def add_user():
     try:
         app.logger.info("Add user request started...")
-        district_code = request.args.get("district_code", None)
-        age = request.args.get("age", None)
-        email = request.args.get("email", None)
-        district = request.args.get("district", None)
+        district_code = json.loads(request.args.get("district_code", None))
+        age = json.loads(request.args.get("age", None))
+        email = json.loads(request.args.get("email", None))
+        district = json.loads(request.args.get("district", None))
+
+        # app.logger.info("{} {} {} {}".format(district_code, age, district, email))
+
         if district_code is None or district_code == '':
             return response_helper.create_parameter_missing_error_response(
                 '{} is required parameter'.format("district_code"), app)
