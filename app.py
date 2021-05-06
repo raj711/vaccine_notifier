@@ -15,13 +15,14 @@ import response_helper
 import atexit
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
+# import traceback
 
 # print("ENVIORNMENT..........", os.environ.get("COWIN_API_ENDPOINT"))
 
 app = Flask(__name__)
 app_logger = logging.getLogger(os.environ.get("APP_LOGGER"))
 app.logger.handlers = app_logger.handlers
-app.logger.setLevel(logging.DEBUG)
+app.logger.setLevel(logging.ERROR)
 cors = CORS(app)
 
 
@@ -138,23 +139,22 @@ atexit.register(lambda: sched.shutdown())
 def add_user():
     try:
         app.logger.info("Add user request started...")
-        district_code = json.loads(request.args.get("district_code", None))
-        age = json.loads(request.args.get("age", None))
-        email = json.loads(request.args.get("email", None))
-        district = json.loads(request.args.get("district", None))
+        district_code = request.args.get("district_code", None)
+        age = request.args.get("age", None)
+        email = request.args.get("email", None)
+        district = request.args.get("district", None)
 
-        # app.logger.info("{} {} {} {}".format(district_code, age, district, email))
-
-        if district_code is None or district_code == '':
+        # app.logger.info("{} {} {} {} ".format(district_code, age, email, district))
+        if district_code is None or district_code == '' or district_code == "null":
             return response_helper.create_parameter_missing_error_response(
                 '{} is required parameter'.format("district_code"), app)
-        elif age is None or age == '':
+        elif age is None or age == '' or age == "null":
             return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("age"),
                                                                            app)
-        elif email is None or email == '':
+        elif email is None or email == '' or email == "null":
             return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("email"),
                                                                            app)
-        elif district is None or district == '':
+        elif district is None or district == '' or district == "null":
             return response_helper.create_parameter_missing_error_response('{} is required parameter'.format("district"),
                                                                            app)
         else:
@@ -176,6 +176,7 @@ def add_user():
                 return response_helper.create_success_response("Already Subscribed", app)
 
     except Exception as e:
+        # app.logger.info("Errorrrrr... {}".format(str(traceback.print_exc())))
         app.logger.error("Something wrong.. {}".format(str(e)))
         return response_helper.create_server_error_response(app)
 
